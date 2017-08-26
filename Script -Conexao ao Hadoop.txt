@@ -1,0 +1,31 @@
+-- usuário do hadoop (senha hduser)
+su hduser
+
+-- mudar o prompt para o diretório sbin no Home do Hadoop
+cd $HADOOP_HOME/sbin
+
+-- inicia o Hadoop
+start-all.sh
+
+-- verificar se o hadoop foi inicializado
+jps
+
+-- rodar o comando ls para listar o conteúdo do hdfs
+hadoop fs -ls /
+
+
+-- conectar ao mysql (senha: root)
+mysql -u root -p
+
+-- visualizar databases
+show databases;
+
+-- utilizar o schema retail_db
+use retail_db;
+
+-- visualizar tabelas do schema
+show tables;
+
+-- sair do mysql
+exit
+

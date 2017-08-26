@@ -1,0 +1,232 @@
+sudo mkdir hive
+
+cd /usr/local/hive
+
+sudo wget http://www-eu.apache.org/dist/hive/hive-1.2.2/apache-hive-1.2.2-bin.tar.gz
+
+sudo tar -xzvf apache-hive-1.2.2-bin.tar.gz
+
+sudo mv apache-hive-1.2.2-bin/* /usr/local/hive
+
+sudo rmdir apache-hive-1.2.2-bin
+
+--sudo rm apache-hive-1.2.2-bin.tar.gz
+
+sudo chown -R hduser:hadoop /usr/local/hive
+
+sudo vi ~/.bashrc
+
+#HIVE VARIABLES START
+export HIVE_HOME=/usr/local/hive
+export PATH=$PATH:$HIVE_HOME/bin
+#HIVE VARIABLES END
+
+source ~/.bashrc
+
+cd /usr/local/hive/bin
+
+vi hive-config.sh
+
+export HADOOP_HOME=/usr/local/hadoop
+
+hadoop fs -mkdir /tmp
+hadoop fs -mkdir -p /user/hive/warehouse
+hadoop fs -chmod g+w /tmp
+hadoop fs -chmod g+w /user/hive/warehouse
+
+cp /usr/local/hive/lib/jline-2.12.jar /usr/local/hadoop/share/hadoop/yarn/lib/
+
+rm /usr/local/hadoop/share/hadoop/yarn/lib/jline-0.9.94.jar
+
+
+cd /usr/local/hive/bin
+
+hive
+
+show databases;
+
+quit;
+
+***************************************
+Configuraço do Metstore do HIVE no MYSQL
+***************************************
+
+mysql -u root -p
+
+--use a senha "root"
+root
+
+CREATE DATABASE metastore;
+
+USE metastore;
+
+SET GLOBAL validate_password_policy=LOW;
+
+#Create user now
+CREATE USER 'hive'@'%' IDENTIFIED BY 'hiveinfnet';
+
+GRANT all on *.* to 'hive'@localhost identified by 'hiveinfnet';
+
+flush privileges;
+
+quit;
+
+***********************************************************
+Configurar o conector do MYSQL
+***********************************************************
+
+cd $HIVE_HOME/lib
+
+-- baixa o connector
+sudo apt-get install libmysql-java
+
+-- configura o link
+sudo ln -s /usr/share/java/mysql-connector-java.jar $HIVE_HOME/lib/mysql-connector-java.jar
+
+cd $HIVE_HOME/conf
+
+sudo cp hive-env.sh.template hive-env.sh
+
+sudo vim hive-env.sh
+
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_HEAP_SIZE=512
+export HIVE_CONF_DIR=/usr/local/hive/conf
+
+
+***************************************
+Configuraço do HIVE
+***************************************
+
+cd /usr/local/hive/conf
+
+cp hive-default.xml.template hive-site.xml
+
+-- apagar o conteudo das tags configuration e incluir o codigo abaixo
+vim hive-site.xml
+
+	<property>
+	  <name>javax.jdo.option.ConnectionURL</name>
+	  <value>jdbc:mysql://localhost/metastore?createDatabaseIfNotExist=true</value>
+	</property>
+	<property>
+	  <name>javax.jdo.option.ConnectionUserName</name>
+	  <value>hive</value>
+	</property>
+	<property>
+	  <name>javax.jdo.option.ConnectionPassword</name>
+	  <value>hiveinfnet</value>
+	</property>
+	<property>
+	  <name>javax.jdo.option.ConnectionDriverName</name>
+	  <value>com.mysql.jdbc.Driver</value>
+	</property>
+	<property>
+	  <name>datanucleus.autoCreateSchema</name>
+	  <value>false</value>
+	</property>
+	<property>
+	  <name>datanucleus.fixedDatastore</name>
+	  <value>true</value>
+	</property>
+	<property>
+	  <name>datanucleus.autoStartMechanism</name>
+	  <value>SchemaTable</value>
+	</property>
+	<property>
+	  <name>hive.metastore.uris</name>
+	  <value>thrift://localhost:9083</value>
+	</property>
+	<property>
+	  <name>hive.metastore.schema.verification</name>
+	  <value>true</value>
+	</property>
+	<property>
+	  <name>hive.server2.thrift.port</name>
+	  <value>10000</value>
+	  <description>TCP port number to listen on, default 10000</description>
+	</property>
+	<property>
+	    <name>hive.server2.enable.doAs</name>
+	    <value>false</value>
+	    <description>
+	      Setting this property to true will have HiveServer2 execute
+	      Hive operations as the user making the calls to it.
+	    </description>
+	</property>
+	<property>
+	  <name>hive.exec.scratchdir</name>
+	  <value>/tmp/hive</value>
+	  <description>HDFS root scratch dir for Hive jobs which gets created with write all (733) permission. For each connecting user, an HDFS scratch dir: ${hive.exec.scratchdir}/&lt;username&gt; is created, with ${hive.scratch.dir.permission}.</description>
+	</property>
+	<property>
+	  <name>hive.exec.local.scratchdir</name>
+	  <value>/tmp/${user.name}</value>
+	  <description>Local scratch space for Hive jobs</description>
+	</property>
+	<property>
+	  <name>hive.downloaded.resources.dir</name>
+	  <value>/tmp/${user.name}_resources</value>
+	  <description>Temporary local directory for added resources in the remote file system.</description>
+	</property>
+	<property>
+	  <name>hive.scratch.dir.permission</name>
+	  <value>733</value>
+	  <description>The permission for the user specific scratch directories that get created.</description>
+	</property>
+
+
+
+cd $HIVE_HOME/lib
+
+sudo wget https://repo1.maven.org/maven2/org/apache/hive/hive-jdbc/2.1.0/hive-jdbc-2.1.0-standalone.jar
+
+
+***********************************************************
+Inicializaço do Metastore
+***********************************************************
+
+-– Inicializar o schema no diretorio bin do Hive
+cd $HIVE_HOME/bin
+
+--  inicializa o metastore 
+schematool -dbType mysql -userName hive -passWord hiveinfnet -initSchema
+
+hive --service metastore
+
+#Startup metastore if not running
+hive --service metastore &
+
+#Now start hiveserver2
+hive --service hiveserver2 &
+$ netstat -an | grep 10000
+
+#Beeline is thE CLI for accessing hiveserver2 via command line; to connect
+$ bin/beeline
+beeline> !connect jdbc:hive2://localhost:10010
+#To quit beeline
+beeline> !quit
+
+
+
+***************************************
+Inicializar/Parar Metastore
+***************************************
+
+cd $HIVE_HOME/bin
+
+#To start; note it listens on 9083 port
+hive --service metastore &
+
+#Make sure it listens on this port
+ netstat -an | grep 9083
+
+#To stop; first note the process id
+ netstat -tulpn | grep 9083
+
+#Kill process by process id
+ kill -s 9 processid
+
+
+
+

@@ -1,0 +1,33 @@
+-- instala o mysql na VM
+sudo apt-get install mysql-server
+
+-- Digitar a senha “root” para o usurio root
+sudo mysql_secure_installation
+
+--Para testar a instalacao, rodar o comando a seguir:
+systemctl status mysql.service
+
+--Se o servico estiver rodando, retornara o status abaixo:
+
+● mysql.service - MySQL Community Server
+   Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
+   Active: active (running) since Fri 2017-04-14 17:13:38 PDT; 3min 47s ago
+ Main PID: 87487 (mysqld)
+   CGroup: /system.slice/mysql.service
+           └─87487 /usr/sbin/mysqld
+
+
+-- Se no estiver rodando, exeuctar o comando a segir:
+sudo systemctl mysql start
+
+-- copiar o arquivo retail_db.sql para o diretorio: /home/aluno/
+
+--conectar no mysql com o usuario root. Digitar a senha root
+mysql -u root -p
+
+create database retail_db;
+
+use retail_db;
+
+-- rodar o comando abaixo para criar os objetos no banco de dados. Copie o arquivo para o diretorio especificado abaixo.
+source /home/hadoop/retail_db.sql

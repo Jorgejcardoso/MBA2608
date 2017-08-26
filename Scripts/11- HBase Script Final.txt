@@ -1,0 +1,29 @@
+
+
+sudo mkdir /usr/local/hbase
+
+cd /usr/local/hbase
+
+sudo wget http://ftp.unicamp.br/pub/apache/hbase/1.2.6/hbase-1.2.6-bin.tar.gz
+
+sudo tar -zxvf hbase-1.2.6-bin.tar.gz
+
+sudo mv hbase-1.2.6/* .
+
+cd /usr/local/hbase/conf
+
+sudo vim hbase-env.sh
+
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+sudo vim hbase-site.xml
+
+<property>
+   <name>hbase.cluster.distributed</name>
+   <value>true</value>
+</property>
+<property>
+   <name>hbase.rootdir</name>
+   <value>hdfs://localhost:8030/hbase</value>
+</property>
+

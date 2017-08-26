@@ -1,0 +1,33 @@
+
+
+sudo mkdir /usr/local/zookeeper
+
+cd /usr/local/zookeeper
+
+sudo wget http://ftp.unicamp.br/pub/apache/zookeeper/stable/zookeeper-3.4.10.tar.gz
+
+sudo tar -zxf zookeeper-3.4.10.tar.gz
+
+sudo mv zookeeper-3.4.10/* .
+
+sudo mkdir /usr/local/zookeeper/data
+
+cd conf
+
+sudo cp zoo_sample.cfg zoo.cfg
+
+sudo vim zoo.cfg
+
+tickTime = 2000
+dataDir = /usr/local/zookeeper/data
+clientPort = 2181
+initLimit = 5
+syncLimit = 2
+
+sudo chown hduser:hadoop /usr/local/zookeeper
+
+cd ../bin
+
+zkServer.sh start
+
+zkCli.sh start

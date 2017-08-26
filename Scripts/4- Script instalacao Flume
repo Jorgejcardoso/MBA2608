@@ -1,0 +1,37 @@
+ssh hduser@localhost
+
+sudo wget http://mirror.nbtelecom.com.br/apache/flume/1.7.0/apache-flume-1.7.0-bin.tar.gz
+
+sudo mkdir /usr/local/flume
+
+sudo tar -xzf apache-flume-1.7.0-bin.tar.gz 
+
+sudo mv apache-flume-1.7.0-bin/* /usr/local/flume/
+
+sudo vim ~/.bashrc
+
+#FLUME VARIABLES START
+export FLUME_HOME=/usr/local/flume
+export PATH=$PATH:$FLUME_HOME/bin
+export FLUME_CLASSPATH=$FLUME_HOME/lib
+#FLUME VARIABLES END
+
+source ~/.bashrc
+
+cd $FLUME_HOME/conf
+
+sudo cp flume-conf.properties.template flume-conf.properties
+
+sudo cp flume-env.sh.template flume-env.sh
+
+--editar o arquivo flume-env.sh
+sudo vim flume-env.sh
+
+--incluir a linha abaixo no arquivo
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+
+-- verificar instalacao
+./flume-ng
+
+
